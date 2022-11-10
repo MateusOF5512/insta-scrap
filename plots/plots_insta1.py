@@ -1,60 +1,150 @@
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 import numpy as np
+from plotly.subplots import make_subplots
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 from datetime import datetime
 import requests
 
 
+def transforma_dados(df):
+
+    df['HORA'] = pd.to_datetime(df['TIME']).dt.hour
+    df['DIA'] = pd.to_datetime(df['TIME']).dt.date
+    df['DIA DA SEMANA'] = pd.to_datetime(df['TIME']).apply(lambda x: x.weekday())
+
+    df['TIPO POST'].replace('GraphSidecar', 'Coleção', inplace=True)
+    df['TIPO POST'].replace('GraphImage', 'Imagem', inplace=True)
+
+    conditions = [
+        (df['HORA'] >= 6) & (df['HORA'] <= 12),
+        (df['HORA'] >= 12) & (df['HORA'] <= 18),
+        (df['HORA'] >= 18) & (df['HORA'] <= 24),
+        (df['HORA'] >= 0) & (df['HORA'] <= 6)]
+    values = ['Manhã', 'Tarde', 'Noite', 'Madrugada']
+    df['TURNO DIA'] = np.select(conditions, values)
+
+    return df
+
+def barplot1(x, y):
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=x, y=y, name="Mídias",
+        hovertemplate="%{y:.0f}",
+        textposition='none', marker_color='#C13584'))
+    fig.update_layout(
+        paper_bgcolor="#F8F8FF", plot_bgcolor="#F8F8FF", font={'color': "#000000", 'family': "sans-serif"},
+        height=300, barmode='stack', margin=dict(l=10, r=10, b=10, t=10), autosize=True)
+    fig.update_xaxes(
+        title_text="Eixo X - Mídias Publicadas", title_font=dict(family='Sans-serif', size=12),
+        tickfont=dict(family='Sans-serif', size=12), showgrid=False)
+    fig.update_yaxes(
+        title_text="Eixo Y - Mídias Publicadas", title_font=dict(family='Sans-serif', size=12),
+        tickfont=dict(family='Sans-serif', size=12), nticks=7, showgrid=True, gridwidth=0.5, gridcolor='#D3D3D3')
+
+    return fig
+
+def barplot2(x, y):
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=x, y=y, name="Vídeos",
+        hovertemplate="%{y:.0f}",
+        textposition='none', marker_color='#E1306C'))
+    fig.update_layout(
+        paper_bgcolor="#F8F8FF", plot_bgcolor="#F8F8FF", font={'color': "#000000", 'family': "sans-serif"},
+        legend=dict(font_size=11, orientation="h", yanchor="top", y=1.20, xanchor="center", x=0.5),
+        height=300, barmode='stack', margin=dict(l=10, r=10, b=10, t=10), autosize=True)
+    fig.update_xaxes(
+        title_text="Eixo X - Vídeos Publicados", title_font=dict(family='Sans-serif', size=12),
+        tickfont=dict(family='Sans-serif', size=12), showgrid=False)
+    fig.update_yaxes(
+        title_text="Eixo Y - Vídeos Publicados", title_font=dict(family='Sans-serif', size=12),
+        tickfont=dict(family='Sans-serif', size=12), nticks=7, showgrid=True, gridwidth=0.5, gridcolor='#D3D3D3')
+
+    return fig
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def requi(perfil):
-    url = f"https://instagram204.p.rapidapi.com/userinfo/{perfil}"
+
+    url = "https://instagram191.p.rapidapi.com/user/details-by-username/"
+
+    querystring = {"username": perfil}
+
     headers = {
         "X-RapidAPI-Key": "aaa93512camsh8984e550bc12f2ap146296jsne961f7a1b8f7",
-        "X-RapidAPI-Host": "instagram204.p.rapidapi.com"
+        "X-RapidAPI-Host": "instagram191.p.rapidapi.com"
     }
 
-    res = requests.request("GET", url, headers=headers).json()
+    res = requests.request("GET", url, headers=headers, params=querystring).json()
 
     return res
 
 
 def convert_csv1(res):
-    ex_url = res["data"]["external_url"]
-    seguidores = res["data"]["edge_followed_by"]['count']
-    seguindo = res["data"]["edge_follow"]['count']
-    midia = res["data"]["edge_owner_to_timeline_media"]["count"]
-    video = res["data"]["edge_felix_video_timeline"]["count"]
-    userid = res["data"]["id"]
-    business = res["data"]["is_business_account"]
-    profissional = res["data"]["is_professional_account"]
-    privado = res["data"]["is_private"]
-    transparente = res["data"]["is_eligible_to_view_account_transparency"]
-    cat_nome = res["data"]["business_category_name"]
-    busi_nome = res["data"]["category_name"]
-    foto = res["data"]["profile_pic_url_hd"]
+    ex_url = res["data"]["user"]["external_url"]
+    seguidores = res["data"]["user"]["edge_followed_by"]['count']
+    seguindo = res["data"]["user"]["edge_follow"]['count']
+    midia = res["data"]["user"]["edge_owner_to_timeline_media"]["count"]
+    video = res["data"]["user"]["edge_felix_video_timeline"]["count"]
+    userid = res["data"]["user"]["id"]
+    business = res["data"]["user"]["is_business_account"]
+    profissional = res["data"]["user"]["is_professional_account"]
+    privado = res["data"]["user"]["is_private"]
+    transparente = res["data"]["user"]["is_eligible_to_view_account_transparency"]
+    cat_nome = res["data"]["user"]["business_category_name"]
+    busi_nome = res["data"]["user"]["category_name"]
+    foto = res["data"]["user"]["profile_pic_url_hd"]
 
     dados = {'seguidores': seguidores, 'seguindo': seguindo, 'midia': midia, 'video': video,
-             'userid': userid, 'business': business, 'profissional':profissional,
-             'privado':privado, 'transparente': transparente, 'cat_nome': cat_nome,
-             'busi_nome': busi_nome, 'foto': foto, 'ex_url': ex_url}
+             'privado':privado, 'transparente': transparente,
+              'business': business, 'profissional':profissional, 'cat_nome': cat_nome,
+             'busi_nome': busi_nome, 'foto': foto, 'userid': userid, 'ex_url': ex_url}
     dados = pd.DataFrame([dados])
 
     return dados
 
 def convert_csv_midia(res):
     try:
-        df0m = res["data"]["edge_owner_to_timeline_media"]['edges'][0]['node']
-        df1m = res["data"]["edge_owner_to_timeline_media"]['edges'][1]['node']
-        df2m = res["data"]["edge_owner_to_timeline_media"]['edges'][2]['node']
-        df3m = res["data"]["edge_owner_to_timeline_media"]['edges'][3]['node']
-        df4m = res["data"]["edge_owner_to_timeline_media"]['edges'][4]['node']
-        df5m = res["data"]["edge_owner_to_timeline_media"]['edges'][5]['node']
-        df6m = res["data"]["edge_owner_to_timeline_media"]['edges'][6]['node']
-        df7m = res["data"]["edge_owner_to_timeline_media"]['edges'][7]['node']
-        df8m = res["data"]["edge_owner_to_timeline_media"]['edges'][8]['node']
-        df9m = res["data"]["edge_owner_to_timeline_media"]['edges'][9]['node']
-        df10m = res["data"]["edge_owner_to_timeline_media"]['edges'][10]['node']
-        df11m = res["data"]["edge_owner_to_timeline_media"]['edges'][11]['node']
+        df0m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][0]['node']
+        df1m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][1]['node']
+        df2m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][2]['node']
+        df3m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][3]['node']
+        df4m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][4]['node']
+        df5m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][5]['node']
+        df6m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][6]['node']
+        df7m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][7]['node']
+        df8m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][8]['node']
+        df9m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][9]['node']
+        df10m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][10]['node']
+        df11m = res["data"]["user"]["edge_owner_to_timeline_media"]['edges'][11]['node']
 
         df0_1 = df0m["edge_media_to_comment"]['count']; df0_1 = pd.DataFrame([df0_1])
         df0_2 = df0m["edge_liked_by"]['count']; df0_2 = pd.DataFrame([df0_2])
@@ -181,12 +271,28 @@ def convert_csv_midia(res):
         dfm = pd.concat([df0_, df1_, df2_, df3_, df4_, df5_, df6_, df7_, df8_, df9_, df10_, df11_], axis=0)
 
         dfm['TIME'] = [datetime.fromtimestamp(x) for x in dfm['taken_at_timestamp']]
+        dfm['HORA'] = pd.to_datetime(dfm['TIME']).dt.hour
+        dfm['DIA'] = pd.to_datetime(dfm['TIME']).dt.date
+        dfm['SEMANA'] = pd.to_datetime(dfm['TIME']).apply(lambda x: x.weekday())
+        dfm['INTER'] = dfm['LIKES'] + dfm['COMENTARIOS']
 
-        dfm = dfm[['__typename', 'LIKES', 'COMENTARIOS',
-                   'TEXTO', 'TIME', 'location', 'shortcode', 'id']]
+        conditions = [(dfm['HORA'] >= 6) & (dfm['HORA'] <= 12),
+                      (dfm['HORA'] >= 12) & (dfm['HORA'] <= 18),
+                      (dfm['HORA'] >= 18) & (dfm['HORA'] <= 24),
+                      (dfm['HORA'] >= 0) & (dfm['HORA'] <= 6)]
+        values = ['Manhã', 'Tarde', 'Noite', 'Madrugada']
+        dfm['TURNO'] = np.select(conditions, values)
+        dfm['UNIDADE'] = np.where(dfm['LIKES'] == 2, 0, 1)
 
-        dfm = dfm.rename(columns={'__typename': 'TIPO POST', 'location': 'LOCALIZAÇAO',
-                                  'shortcode':'SHORTLINK', 'id':'ID POST'})
+        dfm['__typename'].replace('GraphSidecar', 'Coleção', inplace=True)
+        dfm['__typename'].replace('GraphImage', 'Imagem', inplace=True)
+        dfm['__typename'].replace('GraphVideo', 'Vídeo', inplace=True)
+
+        dfm = dfm[[ 'TIME', '__typename', 'LIKES', 'COMENTARIOS', 'INTER',
+                   'TEXTO', 'DIA','HORA','SEMANA','TURNO', 'UNIDADE','shortcode', 'id']]
+
+        dfm = dfm.rename(columns={'__typename': 'TIPO POST', 'location': 'LOCAL',
+                                  'shortcode':'/p/LINK', 'id':'ID POST'})
 
     except:
         d = {'nome': [res], 'status': ['ERRO']}
@@ -198,20 +304,20 @@ def convert_csv_midia(res):
 
 def convert_csv_video(res):
     try:
-        df0v = res["data"]["edge_felix_video_timeline"]['edges'][0]['node']
-        df1v = res["data"]["edge_felix_video_timeline"]['edges'][1]['node']
-        df2v = res["data"]["edge_felix_video_timeline"]['edges'][2]['node']
-        df3v = res["data"]["edge_felix_video_timeline"]['edges'][3]['node']
-        df4v = res["data"]["edge_felix_video_timeline"]['edges'][4]['node']
-        df5v = res["data"]["edge_felix_video_timeline"]['edges'][5]['node']
-        df6v = res["data"]["edge_felix_video_timeline"]['edges'][6]['node']
-        df7v = res["data"]["edge_felix_video_timeline"]['edges'][7]['node']
-        df8v = res["data"]["edge_felix_video_timeline"]['edges'][8]['node']
-        df9v = res["data"]["edge_felix_video_timeline"]['edges'][9]['node']
-        df10v = res["data"]["edge_felix_video_timeline"]['edges'][10]['node']
-        df11v = res["data"]["edge_felix_video_timeline"]['edges'][11]['node']
+        df0v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][0]['node']
+        df1v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][1]['node']
+        df2v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][2]['node']
+        df3v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][3]['node']
+        df4v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][4]['node']
+        df5v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][5]['node']
+        df6v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][6]['node']
+        df7v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][7]['node']
+        df8v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][8]['node']
+        df9v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][9]['node']
+        df10v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][10]['node']
+        df11v = res["data"]["user"]["edge_felix_video_timeline"]['edges'][11]['node']
 
-        df0_1 = df0v["edge_media_to_comment"]['count'];df0_1 = pd.DataFrame([df0_1])
+        df0_1 = df0v["edge_media_to_comment"]['count']; df0_1 = pd.DataFrame([df0_1])
         df0_2 = df0v["edge_liked_by"]['count']; df0_2 = pd.DataFrame([df0_2])
         df0_3 = df0v["edge_media_to_caption"]['edges'][0]['node']['text']; df0_3 = pd.DataFrame([df0_3])
 
@@ -336,20 +442,31 @@ def convert_csv_video(res):
         dfv = pd.concat([df0_, df1_, df2_, df3_, df4_, df5_, df6_, df7_, df8_, df9_, df10_, df11_], axis=0)
 
         dfv['TIME'] = [datetime.fromtimestamp(x) for x in dfv['taken_at_timestamp']]
+        dfv['HORA'] = pd.to_datetime(dfv['TIME']).dt.hour
+        dfv['DIA'] = pd.to_datetime(dfv['TIME']).dt.date
+        dfv['SEMANA'] = pd.to_datetime(dfv['TIME']).apply(lambda x: x.weekday())
+        dfv['INTER'] = dfv['LIKES'] + dfv['COMENTARIOS']
 
-        dfv = dfv[['product_type', '__typename','video_view_count', 'LIKES', 'COMENTARIOS',
-                   'TEXTO', 'video_duration', 'TIME', 'location', 'shortcode', 'id']]
+        conditions = [
+            (dfv['HORA'] >= 6) & (dfv['HORA'] <= 12),
+            (dfv['HORA'] >= 12) & (dfv['HORA'] <= 18),
+            (dfv['HORA'] >= 18) & (dfv['HORA'] <= 24),
+            (dfv['HORA'] >= 0) & (dfv['HORA'] <= 6)]
+        values = ['Manhã', 'Tarde', 'Noite', 'Madrugada']
+        dfv['TURNO'] = np.select(conditions, values)
+        dfv['UNIDADE'] = np.where(dfv['LIKES'] == 2, 0, 1)
 
-        dfv = dfv.rename(columns={'product_type':'TIPO PRODUTO', '__typename': 'TIPO POST',
-                                  'location': 'LOCALIZAÇAO', 'video_duration': 'VIDEO DURAÇAO',
-                                  'shortcode': 'SHORTLINK', 'id': 'ID POST'})
+        dfv = dfv[['TIME', 'product_type', 'video_view_count', 'LIKES', 'COMENTARIOS', 'INTER',
+                   'TEXTO', 'video_duration', 'id', 'shortcode', 'video_url','UNIDADE', 'HORA', 'DIA', 'SEMANA', 'TURNO',]]
+
+        dfv = dfv.rename(columns={'product_type': 'TIPO POST', 'video_view_count':'VISUALIZAÇÕES',
+                                  'video_duration':'VÍDEO DURAÇÃO', 'video_url':'VÍDEO URL',
+                                  'shortcode': '/p/LINK', 'id': 'ID POST'})
+
+
 
     except:
         d = {'nome': [res], 'status': ['ERRO']}
         dfv = pd.DataFrame(d)
 
     return dfv
-
-
-
-
