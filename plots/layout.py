@@ -22,9 +22,14 @@ def rodape():
 
 def parte1(perfil):
     res = requi(perfil)
-    df = convert_csv1(res)
-    df_midia = convert_csv_midia(res)
-    df_video = convert_csv_video(res)
+    try:
+        df = convert_csv1(res)
+        df_midia = convert_csv_midia(res)
+        df_video = convert_csv_video(res)
+    except:
+        df = convert_csv2(res)
+        df_midia = convert_csv_midia2(res)
+        df_video = convert_csv_video2(res)
 
     response = requests.get(df["foto"][0])
     img = Image.open(BytesIO(response.content))
@@ -42,26 +47,14 @@ def parte1(perfil):
     col1A, col2A, col3A = st.columns([520, 60, 520])
     with col1A:
         st.markdown(html_card_header_A1, unsafe_allow_html=True)
-        gd = GridOptionsBuilder.from_dataframe(df_midia)
-        gd.configure_pagination(enabled=True)
-        gd.configure_default_column(editable=True)
-        gd.configure_selection()
-        gd.configure_side_bar()
-        gridoptions = gd.build()
-        AgGrid(df_midia, gridOptions=gridoptions, enable_enterprise_modules=True,
-               height=250, width='100%')
+        st.dataframe(df_midia, height=250)
     with col2A:
         st.text("")
     with col3A:
         st.markdown(html_card_header_A2, unsafe_allow_html=True)
-        gd = GridOptionsBuilder.from_dataframe(df_video)
-        gd.configure_pagination(enabled=True)
-        gd.configure_default_column(editable=True)
-        gd.configure_selection()
-        gd.configure_side_bar()
-        gridoptions = gd.build()
-        AgGrid(df_video, gridOptions=gridoptions, enable_enterprise_modules=True,
-               height=250, width='100%')
+        st.dataframe(df_video, height=250)
+
+
 
     col1A, col2A, col3A = st.columns([550, 50, 550])
     with col1A:
