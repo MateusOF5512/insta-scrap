@@ -23,13 +23,13 @@ def rodape():
 def parte1(perfil):
     res = requi(perfil)
     try:
-        df = convert_csv1(res)
-        df_midia = convert_csv_midia(res)
-        df_video = convert_csv_video(res)
-    except:
         df = convert_csv2(res)
         df_midia = convert_csv_midia2(res)
         df_video = convert_csv_video2(res)
+    except:
+        df = convert_csv1(res)
+        df_midia = convert_csv_midia(res)
+        df_video = convert_csv_video(res)
 
     response = requests.get(df["foto"][0])
     img = Image.open(BytesIO(response.content))
