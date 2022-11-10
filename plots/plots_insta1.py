@@ -93,13 +93,12 @@ def barplot2(x, y):
 
 
 def requi(perfil):
-
     url = "https://instagram191.p.rapidapi.com/user/details-by-username/"
 
     querystring = {"username": perfil}
 
     headers = {
-        "X-RapidAPI-Key": "aaa93512camsh8984e550bc12f2ap146296jsne961f7a1b8f7",
+        "X-RapidAPI-Key": "c84a203889mshb6a0f46c721ea40p154795jsnad2958a17b4c",
         "X-RapidAPI-Host": "instagram191.p.rapidapi.com"
     }
 
