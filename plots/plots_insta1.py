@@ -17,7 +17,8 @@ def barplot1(x, y):
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=x, y=y, name="Mídias",
-        hovertemplate="%{y:.0f}",
+        hovertemplate="</br><b>Eixo Y:</b> %{y}" +
+                      "</br><b>Eixo X:</b> %{x}",
         textposition='none', marker_color='#C13584'))
     fig.update_layout(
         paper_bgcolor="#F8F8FF", plot_bgcolor="#F8F8FF", font={'color': "#000000", 'family': "sans-serif"},
@@ -35,7 +36,8 @@ def barplot2(x, y):
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=x, y=y, name="Vídeos",
-        hovertemplate="%{y:.0f}",
+        hovertemplate="</br><b>Eixo Y:</b> %{y}" +
+                      "</br><b>Eixo X:</b> %{x}",
         textposition='none', marker_color='#E1306C'))
     fig.update_layout(
         paper_bgcolor="#F8F8FF", plot_bgcolor="#F8F8FF", font={'color': "#000000", 'family': "sans-serif"},
@@ -50,6 +52,41 @@ def barplot2(x, y):
 
     return fig
 
+def lineplot1(x, y):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=x, y=y,
+        name='Mídias', mode='lines', hovertemplate=None, xhoverformat="%d %b %y",
+        line=dict(width=1, color='#E1306C'), stackgroup='one'))
+    fig.update_layout(
+        paper_bgcolor="#F8F8FF", plot_bgcolor="#F8F8FF", font={'color': "#000000", 'family': "sans-serif"},
+        height=300, barmode='stack', margin=dict(l=10, r=10, b=10, t=10), autosize=True, hovermode="x unified")
+    fig.update_xaxes(
+        title_text="Eixo X - Mídias Publicadas", title_font=dict(family='Sans-serif', size=12),
+        tickfont=dict(family='Sans-serif', size=12), showgrid=False)
+    fig.update_yaxes(
+        title_text="Eixo Y - Mídias Publicadas", title_font=dict(family='Sans-serif', size=12),
+        tickfont=dict(family='Sans-serif', size=12), nticks=7, showgrid=True, gridwidth=0.5, gridcolor='#D3D3D3')
+
+    return fig
+
+def lineplot2(x, y):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=x, y=y,
+        name='Vídeos', mode='lines', hovertemplate=None, xhoverformat="%d %b %y",
+        line=dict(width=1, color='#E1306C'), stackgroup='one'))
+    fig.update_layout(
+        paper_bgcolor="#F8F8FF", plot_bgcolor="#F8F8FF", font={'color': "#000000", 'family': "sans-serif"},
+        height=300, barmode='stack', margin=dict(l=10, r=10, b=10, t=10), autosize=True, hovermode="x unified")
+    fig.update_xaxes(
+        title_text="Eixo X - Vídeos Publicados", title_font=dict(family='Sans-serif', size=12),
+        tickfont=dict(family='Sans-serif', size=12), showgrid=False)
+    fig.update_yaxes(
+        title_text="Eixo Y - Vídeos Publicados", title_font=dict(family='Sans-serif', size=12),
+        tickfont=dict(family='Sans-serif', size=12), nticks=7, showgrid=True, gridwidth=0.5, gridcolor='#D3D3D3')
+
+    return fig
 
 
 def aggrid_tabela(df):
@@ -65,9 +102,21 @@ def aggrid_tabela(df):
     return ag
 
 
+def wordcloud1(df):
+    words = ' '.join(df['TEXTO'])
 
+    fig, ax = plt.subplots()
+    wordcloud = WordCloud(
+        height=200,
+        min_font_size=8,
+        scale=2.5,
+        background_color='#F9F9FA',
+        max_words=50,
+        min_word_length=2).generate(words)
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis('off')  # to off the axis of x and
 
-
+    return fig
 
 
 
@@ -87,11 +136,11 @@ def aggrid_tabela(df):
 
 
 def requi(perfil):
-    url = f"https://instagram204.p.rapidapi.com/userinfo/{perfil}"
+    url = f"https://instagram188.p.rapidapi.com/userinfo/{perfil}"
 
     headers = {
         "X-RapidAPI-Key": "c84a203889mshb6a0f46c721ea40p154795jsnad2958a17b4c",
-        "X-RapidAPI-Host": "instagram204.p.rapidapi.com"
+        "X-RapidAPI-Host": "instagram188.p.rapidapi.com"
     }
 
     res = requests.request("GET", url, headers=headers).json()
